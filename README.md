@@ -8,7 +8,7 @@
 [![Total Downloads][ico-packagist-download]][link-packagist-download]
 [![Software License][ico-license]][link-licence]
 
-Symfony integration for [Balikobot][link-balikobot].
+Symfony integration for [`inspirum/balikobot`][link-balikobot].
 
 ## Installation
 
@@ -59,8 +59,8 @@ The MIT License (MIT). Please see [License File][link-licence] for more informat
 
 [ico-license]:              https://img.shields.io/github/license/inspirum/balikobot-php-symfony.svg?style=flat-square&colorB=blue
 [ico-workflow]:             https://img.shields.io/github/workflow/status/inspirum/balikobot-php-symfony/Test/master?style=flat-square
-[ico-packagist-stable]:     https://img.shields.io/packagist/v/inspirum/balikobot.svg?style=flat-square&colorB=blue
-[ico-packagist-download]:   https://img.shields.io/packagist/dt/inspirum/balikobot.svg?style=flat-square&colorB=blue
+[ico-packagist-stable]:     https://img.shields.io/packagist/v/inspirum/balikobot-symfony.svg?style=flat-square&colorB=blue
+[ico-packagist-download]:   https://img.shields.io/packagist/dt/inspirum/balikobot-symfony.svg?style=flat-square&colorB=blue
 [ico-phpstan]:              https://img.shields.io/badge/style-level%209-brightgreen.svg?style=flat-square&label=phpstan
 
 [link-balikobot]:           https://github.com/inspirum/balikobot-php

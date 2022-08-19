@@ -3,13 +3,12 @@
   "description": "Symfony bundle for inspirum/balikobot library",
   "keywords": [
     "inspirum",
-    "inspishop",
     "balikobot",
     "api-client",
     "symfony",
     "bundle"
   ],
-  "homepage": "https://github.com/inspirum/balikobot-symfony-php",
+  "homepage": "https://github.com/inspirum/balikobot-php-symfony",
   "license": "MIT",
   "type": "library",
   "authors": [
@@ -29,7 +28,7 @@
     "symfony/http-kernel": "^6.1",
     "symfony/dependency-injection": "^6.1",
     "symfony/config": "^6.1",
-    "inspirum/balikobot": "dev-master"
+    "inspirum/balikobot": "^7.0"
   },
   "require-dev": {
     "inspirum/coding-standard": "^1.1",

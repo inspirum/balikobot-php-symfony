@@ -205,7 +205,7 @@ final class BalikobotBundle extends AbstractBundle
     {
         $services->set(DefaultCarrierProvider::class);
         $services->set(LiveCarrierProvider::class)->args([
-            new Reference(InfoService::class),
+            new Reference(SettingService::class),
         ]);
         $services->alias(CarrierProvider::class, DefaultCarrierProvider::class);
 
@@ -231,7 +231,6 @@ final class BalikobotBundle extends AbstractBundle
         $services->set(DefaultInfoService::class)->args([
             new Reference(Client::class),
             new Reference(AccountFactory::class),
-            new Reference(CarrierFactory::class),
             new Reference(ChangelogFactory::class),
         ]);
 
@@ -250,6 +249,7 @@ final class BalikobotBundle extends AbstractBundle
 
         $services->set(DefaultSettingService::class)->args([
             new Reference(Client::class),
+            new Reference(CarrierFactory::class),
             new Reference(ServiceFactory::class),
             new Reference(ManipulationUnitFactory::class),
             new Reference(CountryFactory::class),
