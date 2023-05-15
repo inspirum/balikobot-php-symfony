@@ -24,7 +24,7 @@
     "ext-json": "*",
     "guzzlehttp/psr7": "^2.0",
     "inspirum/arrayable": "^1.2",
-    "inspirum/balikobot": "dev-master",
+    "inspirum/balikobot": "^7.5",
     "psr/http-message": "^1.0",
     "symfony/config": "^6.1",
     "symfony/dependency-injection": "^6.1",
