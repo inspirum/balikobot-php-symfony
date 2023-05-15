@@ -61,6 +61,10 @@ use Inspirum\Balikobot\Service\DefaultSettingService;
 use Inspirum\Balikobot\Service\DefaultTrackService;
 use Inspirum\Balikobot\Service\InfoService;
 use Inspirum\Balikobot\Service\PackageService;
+use Inspirum\Balikobot\Service\Registry\DefaultServiceContainer;
+use Inspirum\Balikobot\Service\Registry\DefaultServiceContainerRegistry;
+use Inspirum\Balikobot\Service\Registry\ServiceContainer;
+use Inspirum\Balikobot\Service\Registry\ServiceContainerRegistry;
 use Inspirum\Balikobot\Service\SettingService;
 use Inspirum\Balikobot\Service\TrackService;
 
@@ -126,6 +130,10 @@ final class Service
         public readonly DefaultSettingService $defaultSettingService,
         public readonly TrackService $trackService,
         public readonly DefaultTrackService $defaultTrackService,
+        public readonly ServiceContainer $serviceContainer,
+        public readonly DefaultServiceContainer $defaultServiceContainer,
+        public readonly ServiceContainerRegistry $serviceContainerRegistry,
+        public readonly DefaultServiceContainerRegistry $defaultServiceContainerRegistry,
     ) {
     }
 }

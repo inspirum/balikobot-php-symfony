@@ -61,70 +61,133 @@ use Inspirum\Balikobot\Service\DefaultSettingService;
 use Inspirum\Balikobot\Service\DefaultTrackService;
 use Inspirum\Balikobot\Service\InfoService;
 use Inspirum\Balikobot\Service\PackageService;
+use Inspirum\Balikobot\Service\Registry\DefaultServiceContainer;
+use Inspirum\Balikobot\Service\Registry\DefaultServiceContainerRegistry;
+use Inspirum\Balikobot\Service\Registry\ServiceContainer;
+use Inspirum\Balikobot\Service\Registry\ServiceContainerRegistry;
 use Inspirum\Balikobot\Service\SettingService;
 use Inspirum\Balikobot\Service\TrackService;
+use RuntimeException;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
+use function array_key_exists;
+use function array_key_first;
+use function array_keys;
+use function count;
+use function sprintf;
 
 final class BalikobotBundle extends AbstractBundle
 {
     public const ALIAS = 'balikobot';
 
+    private const CONNECTION_DEFAULT = 'default';
+
     protected string $extensionAlias = self::ALIAS;
 
     public function configure(DefinitionConfigurator $definition): void
     {
-        /** @var \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition  $root*/
-        $root     = $definition->rootNode();
-        $children = $root->children();
+        /** @var \Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition $root */
+        $root = $definition->rootNode();
 
-        $children->scalarNode('api_user')
-             ->example('balikobot_test2cztest')
-             ->isRequired()
-             ->cannotBeEmpty()
-             ->end();
-
-        $children->scalarNode('api_key')
-             ->example('#lS1tBVo')
-             ->isRequired()
-             ->cannotBeEmpty()
-             ->end();
-
-        $children->end();
+        $root
+            ->children()
+                ->scalarNode('api_user')
+                    ->example('balikobot_test2cztest')
+                    ->cannotBeEmpty()
+                    ->setDeprecated('inspirum/balikobot-symfony', '1.1')
+                ->end()
+                ->scalarNode('api_key')
+                    ->example('#lS1tBVo')
+                    ->cannotBeEmpty()
+                    ->setDeprecated('inspirum/balikobot-symfony', '1.1')
+                ->end()
+                ->scalarNode('default_connection')
+                    ->example('default')
+                    ->cannotBeEmpty()
+                ->end()
+                ->arrayNode('connections')
+                    ->useAttributeAsKey('name')
+                    ->arrayPrototype()
+                        ->children()
+                            ->scalarNode('api_user')
+                                ->example('balikobot_test2cztest')
+                                ->isRequired()
+                                ->cannotBeEmpty()
+                            ->end()
+                            ->scalarNode('api_key')
+                                ->example('#lS1tBVo')
+                                ->isRequired()
+                                ->cannotBeEmpty()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end();
     }
 
     /**
-     * @param array<string,mixed> $config
+     * @param array{'api_user'?: string, 'api_key'?: string, 'default_connection'?: string, 'connections'?: array<string,array{'api_user': string, 'api_key': string}>} $config
      */
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
         $services = $container->services();
 
-        $this->registerClient($services, $config);
+        $connections           = $this->resolveConnections($config);
+        $connectionsNames      = array_keys($connections);
+        $defaultConnectionName = $this->resolveDefaultConnectionName($connections, $config['default_connection'] ?? self::CONNECTION_DEFAULT);
+
+        $this->registerClients($services, $connections, $defaultConnectionName);
         $this->registerFactories($services);
         $this->registerProviders($services);
-        $this->registerServices($services);
+        $this->registerServices($services, $connectionsNames, $defaultConnectionName);
+        $this->registerServiceRegistry($services, $connectionsNames, $defaultConnectionName);
     }
 
     /**
-     * @param array<string,mixed> $config
+     * @param array<string, array{'api_user': string, 'api_key': string}> $connections
      */
-    private function registerClient(ServicesConfigurator $services, array $config): void
+    private function registerClients(ServicesConfigurator $services, array $connections, string $defaultConnectionName): void
     {
-        $services->set(DefaultCurlRequester::class)->args([$config['api_user'], $config['api_key']]);
-        $services->alias(Requester::class, DefaultCurlRequester::class);
-
         $services->set(Validator::class);
 
-        $services->set(DefaultClient::class)->args([
-            new Reference(Requester::class),
+        foreach ($connections as $name => $connection) {
+            $this->registerClientForConnection($services, $connection, $name, $name === $defaultConnectionName);
+        }
+    }
+
+    /**
+     * @param array{'api_user': string, 'api_key': string} $connection
+     */
+    private function registerClientForConnection(ServicesConfigurator $services, array $connection, string $name, bool $default): void
+    {
+        $defaultCurlRequesterServiceId = $this->serviceIdForConnection(DefaultCurlRequester::class, $name);
+        $services->set($defaultCurlRequesterServiceId, DefaultCurlRequester::class)->args([
+            '$apiUser' => $connection['api_user'],
+            '$apiKey'  => $connection['api_key'],
+        ]);
+
+        $requesterServiceId = $this->serviceIdForConnection(Requester::class, $name);
+        $services->alias($requesterServiceId, $defaultCurlRequesterServiceId);
+
+        $defaultClientServiceId = $this->serviceIdForConnection(DefaultClient::class, $name);
+        $services->set($defaultClientServiceId, DefaultClient::class)->args([
+            new Reference($requesterServiceId),
             new Reference(Validator::class),
         ]);
-        $services->alias(Client::class, DefaultClient::class);
+
+        $clientServiceId = $this->serviceIdForConnection(Client::class, $name);
+        $services->alias($clientServiceId, $defaultClientServiceId);
+
+        if ($default) {
+            $services->alias(DefaultCurlRequester::class, $defaultCurlRequesterServiceId);
+            $services->alias(Requester::class, $defaultCurlRequesterServiceId);
+            $services->alias(DefaultClient::class, $defaultClientServiceId);
+            $services->alias(Client::class, $defaultClientServiceId);
+        }
     }
 
     private function registerFactories(ServicesConfigurator $services): void
@@ -216,28 +279,45 @@ final class BalikobotBundle extends AbstractBundle
         $services->alias(ServiceProvider::class, DefaultServiceProvider::class);
     }
 
-    private function registerServices(ServicesConfigurator $services): void
+    /**
+     * @param array<string> $connectionsNames
+     */
+    private function registerServices(ServicesConfigurator $services, array $connectionsNames, string $defaultConnectionName): void
     {
-        $services->set(DefaultBranchService::class)->args([
-            new Reference(Client::class),
+        foreach ($connectionsNames as $name) {
+            $this->registerServicesForConnection($services, $name, $name === $defaultConnectionName);
+        }
+    }
+
+    private function registerServicesForConnection(ServicesConfigurator $services, string $name, bool $default): void
+    {
+        $clientServiceId = $this->serviceIdForConnection(Client::class, $name);
+
+        $defaultBranchServiceServiceId = $this->serviceIdForConnection(DefaultBranchService::class, $name);
+        $services->set($defaultBranchServiceServiceId, DefaultBranchService::class)->args([
+            new Reference($clientServiceId),
             new Reference(BranchFactory::class),
             new Reference(BranchResolver::class),
             new Reference(CarrierProvider::class),
             new Reference(ServiceProvider::class),
         ]);
 
-        $services->alias(BranchService::class, DefaultBranchService::class);
+        $branchServiceServiceId = $this->serviceIdForConnection(BranchService::class, $name);
+        $services->alias($branchServiceServiceId, $defaultBranchServiceServiceId);
 
-        $services->set(DefaultInfoService::class)->args([
-            new Reference(Client::class),
+        $defaultInfoServiceServiceId = $this->serviceIdForConnection(DefaultInfoService::class, $name);
+        $services->set($defaultInfoServiceServiceId, DefaultInfoService::class)->args([
+            new Reference($clientServiceId),
             new Reference(AccountFactory::class),
             new Reference(ChangelogFactory::class),
         ]);
 
-        $services->alias(InfoService::class, DefaultInfoService::class);
+        $infoServiceServiceId = $this->serviceIdForConnection(InfoService::class, $name);
+        $services->alias($infoServiceServiceId, $defaultInfoServiceServiceId);
 
-        $services->set(DefaultPackageService::class)->args([
-            new Reference(Client::class),
+        $defaultPackageServiceServiceId = $this->serviceIdForConnection(DefaultPackageService::class, $name);
+        $services->set($defaultPackageServiceServiceId, DefaultPackageService::class)->args([
+            new Reference($clientServiceId),
             new Reference(PackageDataFactory::class),
             new Reference(PackageFactory::class),
             new Reference(OrderedShipmentFactory::class),
@@ -245,10 +325,13 @@ final class BalikobotBundle extends AbstractBundle
             new Reference(ProofOfDeliveryFactory::class),
             new Reference(TransportCostFactory::class),
         ]);
-        $services->alias(PackageService::class, DefaultPackageService::class);
 
-        $services->set(DefaultSettingService::class)->args([
-            new Reference(Client::class),
+        $packageServiceServiceId = $this->serviceIdForConnection(PackageService::class, $name);
+        $services->alias($packageServiceServiceId, $defaultPackageServiceServiceId);
+
+        $defaultSettingServiceServiceId = $this->serviceIdForConnection(DefaultSettingService::class, $name);
+        $services->set($defaultSettingServiceServiceId, DefaultSettingService::class)->args([
+            new Reference($clientServiceId),
             new Reference(CarrierFactory::class),
             new Reference(ServiceFactory::class),
             new Reference(ManipulationUnitFactory::class),
@@ -257,12 +340,107 @@ final class BalikobotBundle extends AbstractBundle
             new Reference(AdrUnitFactory::class),
             new Reference(AttributeFactory::class),
         ]);
-        $services->alias(SettingService::class, DefaultSettingService::class);
 
-        $services->set(DefaultTrackService::class)->args([
-            new Reference(Client::class),
+        $settingServiceServiceId = $this->serviceIdForConnection(SettingService::class, $name);
+        $services->alias($settingServiceServiceId, $defaultSettingServiceServiceId);
+
+        $defaultTrackServiceServiceId = $this->serviceIdForConnection(DefaultTrackService::class, $name);
+        $services->set($defaultTrackServiceServiceId, DefaultTrackService::class)->args([
+            new Reference($clientServiceId),
             new Reference(StatusFactory::class),
         ]);
-        $services->alias(TrackService::class, DefaultTrackService::class);
+
+        $tackServiceServiceId = $this->serviceIdForConnection(TrackService::class, $name);
+        $services->alias($tackServiceServiceId, $defaultTrackServiceServiceId);
+
+        if ($default) {
+            $services->alias(BranchService::class, $defaultBranchServiceServiceId);
+            $services->alias(DefaultBranchService::class, $defaultBranchServiceServiceId);
+            $services->alias(InfoService::class, $defaultInfoServiceServiceId);
+            $services->alias(DefaultInfoService::class, $defaultInfoServiceServiceId);
+            $services->alias(PackageService::class, $defaultPackageServiceServiceId);
+            $services->alias(DefaultPackageService::class, $defaultPackageServiceServiceId);
+            $services->alias(SettingService::class, $defaultSettingServiceServiceId);
+            $services->alias(DefaultSettingService::class, $defaultSettingServiceServiceId);
+            $services->alias(TrackService::class, $defaultTrackServiceServiceId);
+            $services->alias(DefaultTrackService::class, $defaultTrackServiceServiceId);
+        }
+    }
+
+    /**
+     * @param array<string> $connectionsNames
+     */
+    private function registerServiceRegistry(ServicesConfigurator $services, array $connectionsNames, string $defaultConnectionName): void
+    {
+        $containers = [];
+
+        foreach ($connectionsNames as $name) {
+            $this->registerServiceContainerForConnection($services, $name, $name === $defaultConnectionName);
+
+            $containers[$name] = new Reference($this->serviceIdForConnection(ServiceContainer::class, $name));
+        }
+
+        $services->set(DefaultServiceContainerRegistry::class)->args([
+            $containers,
+            $defaultConnectionName,
+        ]);
+
+        $services->alias(ServiceContainerRegistry::class, DefaultServiceContainerRegistry::class);
+    }
+
+    private function registerServiceContainerForConnection(ServicesConfigurator $services, string $name, bool $default): void
+    {
+        $defaultServiceContainerServiceId = $this->serviceIdForConnection(DefaultServiceContainer::class, $name);
+        $services->set($defaultServiceContainerServiceId, DefaultServiceContainer::class)->args([
+            new Reference($this->serviceIdForConnection(BranchService::class, $name)),
+            new Reference($this->serviceIdForConnection(InfoService::class, $name)),
+            new Reference($this->serviceIdForConnection(PackageService::class, $name)),
+            new Reference($this->serviceIdForConnection(SettingService::class, $name)),
+            new Reference($this->serviceIdForConnection(TrackService::class, $name)),
+        ]);
+
+        $serviceContainerServiceId = $this->serviceIdForConnection(ServiceContainer::class, $name);
+        $services->alias($serviceContainerServiceId, $defaultServiceContainerServiceId);
+
+        if ($default) {
+            $services->alias(DefaultServiceContainer::class, $defaultServiceContainerServiceId);
+            $services->alias(ServiceContainer::class, $defaultServiceContainerServiceId);
+        }
+    }
+
+    /**
+     * @param array<string,array{'api_user': string, 'api_key': string}> $connections
+     */
+    private function resolveDefaultConnectionName(array $connections, string $defaultName): string
+    {
+        if (array_key_exists($defaultName, $connections)) {
+            return $defaultName;
+        }
+
+        return array_key_first($connections) ?? self::CONNECTION_DEFAULT;
+    }
+
+    /**
+     * @param array{'api_user'?: string, 'api_key'?: string, 'connections'?: array<string,array{'api_user': string, 'api_key': string}>} $config
+     *
+     * @return non-empty-array<string,array{'api_user': string, 'api_key': string}>
+     */
+    private function resolveConnections(array $config): array
+    {
+        $connections = $config['connections'] ?? [];
+
+        if (count($connections) === 0) {
+            $connections[self::CONNECTION_DEFAULT] = [
+                'api_user' => $config['api_user'] ?? throw new RuntimeException('Missing "api_user" configuration'),
+                'api_key'  => $config['api_key'] ?? throw new RuntimeException('Missing "api_key" configuration'),
+            ];
+        }
+
+        return $connections;
+    }
+
+    private function serviceIdForConnection(string $class, string $name): string
+    {
+        return sprintf('%s.%s', $class, $name);
     }
 }

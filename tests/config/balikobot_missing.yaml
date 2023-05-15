@@ -1,0 +1,2 @@
+balikobot:
+    api_user: '%env(resolve:BALIKOBOT_API_USER)%'

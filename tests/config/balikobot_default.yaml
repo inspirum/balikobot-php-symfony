@@ -1,0 +1,5 @@
+balikobot:
+    connections:
+        default:
+            api_user: '%env(resolve:BALIKOBOT_API_USER)%'
+            api_key: '%env(resolve:BALIKOBOT_API_KEY)%'

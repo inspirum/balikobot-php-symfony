@@ -32,8 +32,38 @@ Configure client credentials by adding `config/packages/balikobot.yaml` and sett
 
 ```yaml
 balikobot:
-    api_user: '%env(resolve:BALIKOBOT_API_USER)%'
-    api_key: '%env(resolve:BALIKOBOT_API_KEY)%'
+    connections:
+        default:
+            api_user: '%env(resolve:BALIKOBOT_API_USER)%'
+            api_key: '%env(resolve:BALIKOBOT_API_KEY)%'
+```
+
+You can use multiple client credentials
+
+```yaml
+balikobot:
+    connections:
+        client1:
+            api_user: '%env(resolve:BALIKOBOT_API_USER_1)%'
+            api_key: '%env(resolve:BALIKOBOT_API_KEY_1)%'
+        client2:
+            api_user: '%env(resolve:BALIKOBOT_API_USER_2)%'
+            api_key: '%env(resolve:BALIKOBOT_API_KEY_2)%'
+        client3:
+            api_user: '%env(resolve:BALIKOBOT_API_USER_3)%'
+            api_key: '%env(resolve:BALIKOBOT_API_KEY_3)%'
+```
+
+Then use `ServiceContainerRegistry` to get `ServiceContainer` for given connection.
+
+```php
+/** @var Inspirum\Balikobot\Service\Registry\ServiceContainerRegistry $registry */
+
+// get package service for default (or first) connection
+$packageService = $registry->get()->getPackageService();
+
+// get branch service for "client3" connection
+$packageService = $registry->get('client3')->getBranchService();
 ```
 
 ## Contributing

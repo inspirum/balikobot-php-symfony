@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased](https://github.com/inspirum/balikobot-php-symfony/compare/v1.0.0...master)
+### Added
+- Added support for multiple client connections with [**ServiceContainerRegistry**](https://github.com/inspirum/balikobot-php/blob/master/src/Service/Registry/ServiceContainerRegistry.php) service
 
 
 ## v1.0.0 (2022-08-19)
