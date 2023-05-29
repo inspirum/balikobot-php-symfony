@@ -19,7 +19,7 @@
   ],
   "require": {
     "php": "^8.1",
-    "inspirum/balikobot": "^7.5",
+    "inspirum/balikobot": "^7.6",
     "symfony/config": "^6.1",
     "symfony/dependency-injection": "^6.1",
     "symfony/http-kernel": "^6.1"
