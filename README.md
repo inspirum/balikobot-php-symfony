@@ -40,6 +40,7 @@ You can use multiple client credentials
 
 ```yaml
 balikobot:
+    default_connection: 'client2'
     connections:
         client1:
             api_user: '%env(resolve:BALIKOBOT_API_USER_1)%'
@@ -52,7 +53,9 @@ balikobot:
             api_key: '%env(resolve:BALIKOBOT_API_KEY_3)%'
 ```
 
-Then use `ServiceContainerRegistry` to get `ServiceContainer` for given connection.
+## Usage
+
+Use `ServiceContainerRegistry` to get `ServiceContainer` for given connection.
 
 ```php
 /** @var Inspirum\Balikobot\Service\Registry\ServiceContainerRegistry $registry */
@@ -63,6 +66,17 @@ $packageService = $registry->get()->getPackageService();
 // get branch service for "client3" connection
 $packageService = $registry->get('client3')->getBranchService();
 ```
+
+or use services directly for default connection
+
+```php
+/** @var Inspirum\Balikobot\Service\PackageService $packageService */
+$packageService->addPackages(...)
+
+/** @var Inspirum\Balikobot\Service\BranchService $branchService */
+$branchService->getBranches(...)
+```
+
 
 ## Contributing
 
