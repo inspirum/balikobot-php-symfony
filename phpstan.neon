@@ -10,3 +10,9 @@ parameters:
 			message: '#^Call to an undefined method Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface\:\:scalarNode\(\).$#'
 			count: 1
 			path: src/BalikobotBundle.php
+			reportUnmatched: false
+		-
+			message: '#^Cannot call method scalarNode\(\) on Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface\|null\.$#'
+			count: 1
+			path: src/BalikobotBundle.php
+			reportUnmatched: false
