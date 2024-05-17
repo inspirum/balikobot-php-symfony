@@ -136,8 +136,8 @@ final class BalikobotBundle extends AbstractBundle
     {
         $services = $container->services();
 
-        $connections           = $this->resolveConnections($config);
-        $connectionsNames      = array_keys($connections);
+        $connections = $this->resolveConnections($config);
+        $connectionsNames = array_keys($connections);
         $defaultConnectionName = $this->resolveDefaultConnectionName($connections, $config['default_connection'] ?? self::CONNECTION_DEFAULT);
 
         $this->registerClients($services, $connections, $defaultConnectionName);
@@ -167,7 +167,7 @@ final class BalikobotBundle extends AbstractBundle
         $defaultCurlRequesterServiceId = $this->serviceIdForConnection(DefaultCurlRequester::class, $name);
         $services->set($defaultCurlRequesterServiceId, DefaultCurlRequester::class)->args([
             '$apiUser' => $connection['api_user'],
-            '$apiKey'  => $connection['api_key'],
+            '$apiKey' => $connection['api_key'],
         ]);
 
         $requesterServiceId = $this->serviceIdForConnection(Requester::class, $name);
@@ -432,7 +432,7 @@ final class BalikobotBundle extends AbstractBundle
         if (count($connections) === 0) {
             $connections[self::CONNECTION_DEFAULT] = [
                 'api_user' => $config['api_user'] ?? throw new RuntimeException('Missing "api_user" configuration'),
-                'api_key'  => $config['api_key'] ?? throw new RuntimeException('Missing "api_key" configuration'),
+                'api_key' => $config['api_key'] ?? throw new RuntimeException('Missing "api_key" configuration'),
             ];
         }
 
