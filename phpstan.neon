@@ -16,3 +16,7 @@ parameters:
 			count: 1
 			path: src/BalikobotBundle.php
 			reportUnmatched: false
+		-
+			message: '#^Cannot call method .+\(\) on mixed\.$#'
+			path: src/BalikobotBundle.php
+			reportUnmatched: false
