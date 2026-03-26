@@ -6,7 +6,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased](https://github.com/inspirum/balikobot-php-symfony/compare/v1.4.0...master)
+## [Unreleased](https://github.com/inspirum/balikobot-php-symfony/compare/v1.4.1...master)
+
+
+## [v1.4.1 (2026-03-26)](https://github.com/inspirum/balikobot-php-symfony/compare/v1.4.0...v1.4.1)
+### Fixed
+- Fixed dependencies constraint
 
 
 ## [v1.4.0 (2026-03-26)](https://github.com/inspirum/balikobot-php-symfony/compare/v1.3.0...v1.4.0)
