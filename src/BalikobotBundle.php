@@ -80,6 +80,10 @@ use function array_keys;
 use function count;
 use function sprintf;
 
+/**
+ * @phpstan-type BalikobotConnection array{'api_user': string, 'api_key': string}
+ * @phpstan-type BalikobotConfig array{'api_user'?: string, 'api_key'?: string, 'default_connection'?: string, 'connections'?: array<string,array{'api_user': string, 'api_key': string}>}
+ */
 final class BalikobotBundle extends AbstractBundle
 {
     public const ALIAS = 'balikobot';
@@ -130,7 +134,7 @@ final class BalikobotBundle extends AbstractBundle
     }
 
     /**
-     * @param array{'api_user'?: string, 'api_key'?: string, 'default_connection'?: string, 'connections'?: array<string,array{'api_user': string, 'api_key': string}>} $config
+     * @param BalikobotConfig $config
      */
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {
@@ -148,7 +152,7 @@ final class BalikobotBundle extends AbstractBundle
     }
 
     /**
-     * @param array<string, array{'api_user': string, 'api_key': string}> $connections
+     * @param array<string,BalikobotConnection> $connections
      */
     private function registerClients(ServicesConfigurator $services, array $connections, string $defaultConnectionName): void
     {
@@ -160,7 +164,7 @@ final class BalikobotBundle extends AbstractBundle
     }
 
     /**
-     * @param array{'api_user': string, 'api_key': string} $connection
+     * @param BalikobotConnection $connection
      */
     private function registerClientForConnection(ServicesConfigurator $services, array $connection, string $name, bool $default): void
     {
@@ -409,7 +413,7 @@ final class BalikobotBundle extends AbstractBundle
     }
 
     /**
-     * @param array<string,array{'api_user': string, 'api_key': string}> $connections
+     * @param array<string,BalikobotConnection> $connections
      */
     private function resolveDefaultConnectionName(array $connections, string $defaultName): string
     {
@@ -421,9 +425,9 @@ final class BalikobotBundle extends AbstractBundle
     }
 
     /**
-     * @param array{'api_user'?: string, 'api_key'?: string, 'connections'?: array<string,array{'api_user': string, 'api_key': string}>} $config
+     * @param BalikobotConfig $config
      *
-     * @return non-empty-array<string,array{'api_user': string, 'api_key': string}>
+     * @return non-empty-array<string,BalikobotConnection>
      */
     private function resolveConnections(array $config): array
     {

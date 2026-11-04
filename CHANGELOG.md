@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed the default branch from `master` to `main`
 ### Removed
 - Removed local issue and pull request templates, code of conduct and contributing guide in favour of the shared [inspirum/.github](https://github.com/inspirum/.github) defaults
+### Fixed
+- Fixed PHPStan config array shape in `BalikobotBundle::resolveConnections()` missing `default_connection`
 
 
 ## [v1.4.1 (2026-03-26)](https://github.com/inspirum/balikobot-php-symfony/compare/v1.4.0...v1.4.1)
