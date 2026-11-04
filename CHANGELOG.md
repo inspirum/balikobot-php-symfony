@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased](https://github.com/inspirum/balikobot-php-symfony/compare/v1.4.1...main)
+## [Unreleased](https://github.com/inspirum/balikobot-php-symfony/compare/v1.4.2...main)
+
+
+## [v1.4.2 (2026-11-04)](https://github.com/inspirum/balikobot-php-symfony/compare/v1.4.1...v1.4.2)
 ### Changed
 - Switched CI to the shared [inspirum/.github](https://github.com/inspirum/.github) workflow
 - Renamed the default branch from `master` to `main`
