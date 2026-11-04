@@ -71,7 +71,7 @@
       "@phpcs"
     ],
     "style:phpstan": [
-      "@phpstan -l 10"
+      "@phpstan"
     ],
     "style:check": [
       "@style:phpcs",
